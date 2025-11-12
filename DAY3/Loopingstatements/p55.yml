@@ -1,0 +1,16 @@
+---
+- name: conditional based install a package
+  hosts: all
+  vars:
+    packages:
+    - name: httpd
+      os_supported: ['RedHat','CentOS']
+    - name: apache2
+      os_supported: ['Debian','Ubuntu']
+
+  tasks:
+  - name: install package if current os is supported
+    debug:
+      msg: "Installing {{item.name}}"
+    loop: "{{ packages }}"
+    when: ansible_facts["os_family"] in item.os_supported
