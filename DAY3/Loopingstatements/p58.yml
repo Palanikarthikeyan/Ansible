@@ -1,0 +1,10 @@
+---
+- name: Copy all the log files from current directory to remote /tmp
+  hosts: all
+  tasks:
+  - name: task-1
+    copy:
+      src: "{{ item }}"
+      dest: /tmp
+    with_fileglob:
+      - "./*.log"
