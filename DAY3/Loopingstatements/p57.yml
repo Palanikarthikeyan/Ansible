@@ -1,0 +1,14 @@
+---
+- hosts: all
+  vars:
+    mydict:
+     'user1': 2001
+     'user2': 2002
+
+  tasks:
+  - name: create multiple users
+    user:
+      name: "{{ item.key }}"  #<-- pre-defined placeholder
+      uid: "{{ item.value }}" #<-- pre-defiend placeholder
+      state: present
+    with_dict: "{{ mydict }}"
