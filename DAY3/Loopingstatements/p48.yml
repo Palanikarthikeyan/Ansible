@@ -1,0 +1,13 @@
+---
+- hosts: all
+  tasks:
+  - name: task-1 create a user account
+    user: name="{{item}}" state=present
+    loop:
+    - demo1
+    - demo2
+    - demo3
+    - demo4
+    - demo5
+  - name: task-2
+    debug: msg="Thank you"
