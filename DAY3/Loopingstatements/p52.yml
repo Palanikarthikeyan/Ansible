@@ -1,0 +1,22 @@
+---
+- name: create user groups
+  hosts: node4
+  tasks:
+  - name: create list of dept groups - task1
+    group: name="{{item}}"
+    loop:
+    - sales
+    - prod
+    - HR
+    - QA
+  - name: add users to the department - task2
+    user:
+     name: "{{ item.K1 }}"
+     group: "{{ item.K2 }}"
+     uid: "{{item.K3}}"
+     state: present
+    loop:
+    - {K1: 'Ua',K2: 'sales',K3: 1234}
+    - {K1: 'Ub',K2: 'prod',K3: 2232}
+    - {K1: 'Uc',K2: 'HR',K3: 3435}
+    - {K1: 'Ud',K2: 'QA',K3: 2436}
