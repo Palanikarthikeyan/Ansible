@@ -1,0 +1,21 @@
+---
+- hosts: localhost
+  tasks:
+  - name: task-1
+    debug: msg="Task-1 Execution"
+    when: 10 == 10
+  - name: task-2
+    debug: msg="Task-2 Execution"
+    when: 10 == 20
+  - debug: msg="Task-3 execution"
+    when: "45" # logically true ie.,bool("45") ->True
+  - debug: msg="Task-4 execution"
+    when: ("45"|int) > 40
+  - debug: msg="OK-1"
+    when: true
+  - debug: msg="OK-2"
+    when: false
+  - debug: msg="Working linux is:{{ansible_distribution}}"
+    when: ansible_facts["os_family"] == "RedHat"
+  - debug: msg="Working linux is:{{ansible_distribution}}"
+    when: ansible_facts["os_family"] == "Debian"
