@@ -1,0 +1,29 @@
+---
+- hosts: localhost
+  vars:
+   myvars:
+   - d1
+   - d2
+   - d3
+   myobj:
+     K1: V1
+     K2: V2
+     K3: V3
+  tasks:
+  - name: task-1 - fetch list of items from an array
+    debug: msg="{{item}}"
+    loop:
+    - "{{myvars}}"
+  - name: task-2 - fetch dict data
+    debug: msg="{{item}}"
+    loop:
+    - "{{myobj}}"
+  - name: task-3 - fetch key only
+    debug: msg="{{item.keys()}}"
+    loop:
+    - "{{myobj}}"
+  - name: task-4
+    debug: msg="{{item.K1}}  {{item.K3}}"
+    loop:
+    - "{{myobj}}"
+
