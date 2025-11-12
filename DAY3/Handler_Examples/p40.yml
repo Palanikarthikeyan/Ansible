@@ -1,0 +1,22 @@
+---
+- hosts: localhost
+  tasks:
+  - command: date
+    notify: one
+  - command: uname
+    notify:
+    - one
+    - two
+    - three
+  - meta: flush_handlers
+  - debug: msg="Task2"
+  - debug: msg="Task3"
+  - debug: msg="Task4"
+  - debug: msg="Task5"
+  handlers:
+  - name: one
+    debug: msg="This is Handler block-1"
+  - name: two
+    debug: msg="This is Handler block-2"
+  - name: three
+    debug: msg="This is Handler block-3"
