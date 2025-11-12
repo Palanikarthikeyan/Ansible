@@ -1,0 +1,16 @@
+---
+- hosts: localhost
+  tasks:
+  - command: touch "{{item}}"
+    when: item == "p1.log" or item == "p2.log" or item == "p3.log"
+    loop:
+    - p1.log
+    - p2.log
+    - p3.log
+    - p4.log
+  - file: "name={{item}} state=absent"
+    loop:
+    - p1.log
+    - p2.log
+    - p3.log
+    - p4.log
