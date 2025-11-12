@@ -1,0 +1,18 @@
+---
+- hosts: node4
+  tasks:
+  - name: task1
+    command: uptime
+    register: result1
+    notify: one
+  - name: task2
+    shell: lsmod|wc -l
+    register: result2
+    notify: two
+  - name: task3
+    debug: msg="Task-3"
+  handlers:
+  - name: one
+    debug: var=result1.stdout
+  - name: two
+    debug: var=result2.stdout
