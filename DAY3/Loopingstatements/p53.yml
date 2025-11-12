@@ -1,0 +1,10 @@
+---
+- hosts: localhost
+  tasks:
+  - debug: msg="{{item}}"
+    when: item == "data3" or item == "data2"
+    loop:
+    - data1
+    - data2
+    - data3
+    - data4
