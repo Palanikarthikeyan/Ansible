@@ -1,0 +1,15 @@
+---
+- hosts: localhost
+  vars:
+    port: 5005
+    sh: "/bin/bash"
+  tasks:
+  - name: task-1
+    debug: msg="Task execution"
+    when: (port >5000) and (port <6000)
+  - name: task-2
+    debug: msg="Task execution-2"
+    when:  sh == "/bin/sh" or sh == "/bin/bash"
+  - name: task-3
+    debug: msg="Task execution-3"
+    when:  sh == "/bin/sh" or sh == "/bin/ksh"
