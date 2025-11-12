@@ -1,0 +1,20 @@
+---
+- hosts: node4
+  vars:
+    pkg: httpd
+  tasks:
+  - name: "install {{pkg}} "
+    dnf:
+      name: "{{pkg}}"
+      state: present
+    notify: callme
+  - name: "copy the httpd.conf file to remote system /etc"
+    copy:
+      src: httpd.conf
+      dest: /tmp/httpd.conf
+    notify: callme
+  handlers:
+  - name: callme
+    service:
+       name: "{{pkg}}"
+       state: restarted
