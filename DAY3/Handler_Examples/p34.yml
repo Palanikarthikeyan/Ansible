@@ -1,0 +1,15 @@
+---
+- hosts: node4
+  vars:
+    pkg: httpd
+  tasks:
+  - name: "install {{pkg}} "
+    dnf:
+      name: "{{pkg}}"
+      state: present
+    notify: callme
+  handlers:
+  - name: callme
+    service:
+       name: "{{pkg}}"
+       state: restarted
