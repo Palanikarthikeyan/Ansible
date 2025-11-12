@@ -1,0 +1,20 @@
+---
+- hosts: node4
+  tasks:
+  - name: task1
+    command: uptime
+    register: result
+    notify:
+    - one
+    - two
+    - three
+  - debug: msg="Task-2"
+  - debug: msg="Task-3"
+  - debug: msg="Task-4"
+  handlers:
+  - name: one
+    debug: var=result.stdout
+  - name: two
+    debug: var=result.rc
+  - name: three
+    debug: msg="all the execution is done"
