@@ -1,0 +1,28 @@
+---
+- hosts: all
+  tasks:
+  - name: task-1 system info
+    debug: var=ansible_os_family
+    when: true
+  - name: task-2 install zsh package
+    dnf: name="zsh" state=present
+    when: ansible_os_family == "RedHat" and (ansible_distribution_major_version|int) >= 8
+  - name: task-3
+    debug: msg="This is task-3"
+    when:
+    - ansible_os_family == "RedHat"
+    - (ansible_distribution_major_version|int) >= 8
+
+  - name: task-4
+    debug: msg="This is task-4"
+    when: ansible_facts["os_family"] in ["RedHat","Debian","CentOS"]
+
+  - name: task-5
+    debug: msg="This is task-5"
+    when: ansible_facts["os_family"] in ["RedHat","CentOS"]
+
+  - name: task-6
+    vars:
+      cpu_core: 4
+    debug: msg="This is task-6"
+    when: ansible_facts["os_family"] in ["RedHat","CentOS"] or cpu_core > 2
