@@ -1,0 +1,11 @@
+---
+- hosts: localhost
+  tasks:
+  - name: task1
+    debug: msg="{{item}}"
+    loop:
+    - ps|awk '{print $4}'
+  - name: task2
+    debug: msg="{{item}}"
+    with_lines:
+    - ps|awk '{print $4}'
