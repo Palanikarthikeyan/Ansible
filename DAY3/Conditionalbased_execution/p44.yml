@@ -1,0 +1,9 @@
+---
+- hosts: all
+  tasks:
+  - name: task-1 system info
+    debug: var=ansible_os_family
+    when: true
+  - name: task-2 install zsh package
+    dnf: name="zsh" state=present
+    when: ansible_os_family == "RedHat" and (ansible_distribution_major_version|int) >= 8
