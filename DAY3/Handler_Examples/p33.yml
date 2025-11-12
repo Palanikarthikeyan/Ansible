@@ -1,0 +1,17 @@
+---
+- hosts: localhost
+  vars:
+    mycmd: uptime
+  tasks:
+  - name: "Execute {{mycmd}} command"
+    command: "{{mycmd}}"
+    register: output
+    notify: display
+  - debug: msg="This is task-2"
+  - debug: msg="This is task-3"
+  - name: "Task-4"
+    debug: msg="This is task-4"
+    notify: display # it won't notified
+  handlers:
+  - name: display
+    debug: var=output.stdout
