@@ -1,0 +1,8 @@
+---
+- hosts: localhost
+  tasks:
+  - debug:
+      msg: "OS = {{item.0}} Version is:{{item.1}}"
+    with_nested:
+    - ["OracleLinux","RedHat","Debian"]
+    - ["8","7","14"]
