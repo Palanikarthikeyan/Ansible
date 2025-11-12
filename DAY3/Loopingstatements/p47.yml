@@ -1,0 +1,12 @@
+---
+- hosts: localhost
+  tasks:
+  - name: task-1 display list of shell name
+    debug: msg="shell name is:{{item}}"
+    loop:
+    - /bin/sh
+    - /bin/ksh
+    - /usr/bin/ksh93
+    - /bin/bash
+  - name: task-2
+    debug: msg="Thank you"
