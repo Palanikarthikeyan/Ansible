@@ -1,0 +1,19 @@
+---
+- name: handler block demo
+  hosts: localhost
+  tasks:
+  - name: task-1
+    debug: msg="Welcome to ansible task section"
+  - name: task-2
+    command: date
+    notify: callone
+  - name: task-3
+    shell: uname
+    notify: callone
+  - name: task-4
+    debug: msg="Task-4 execution"
+  - name: task-5
+    debug: msg="Task-5 execution"
+  handlers:
+  - name: callone
+    debug: msg="This is Handler block"
