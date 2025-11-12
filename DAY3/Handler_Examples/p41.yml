@@ -1,0 +1,16 @@
+---
+- name: multiple handlers with different name
+  hosts: localhost
+  tasks:
+  - name: task1
+    command: date
+    notify: one
+  - name: task2
+    command: uptime
+    notify: two
+  handlers:
+  - name: myhandler_block
+    listen:
+    - one
+    - two
+    debug: msg="Handler block"
