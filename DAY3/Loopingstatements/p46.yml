@@ -1,0 +1,13 @@
+---
+- hosts: localhost
+  vars:
+    pkg1: zsh
+    pkg2: [ksh,sh,gcc]
+    pkg3: {K1: httpd,K2: python3,K3: bash}
+  tasks:
+  - debug: msg="{{pkg1}}"
+    when: pkg1 == "zsh"
+  - debug: msg="{{pkg2.0}} {{pkg2.1}}"
+    when: pkg1 in pkg2
+  - debug: msg="{{pkg3.K1}} {{pkg3.K2}} {{pkg3.K3}}"
+    when: "pkg3.K1 in pkg3"
