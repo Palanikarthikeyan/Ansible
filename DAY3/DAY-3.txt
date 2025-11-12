@@ -1,0 +1,451 @@
+Recap
+======
+YAML 
+|---> key: value //format
+
+|->1. configuration 
+	|
+	|--> INI => Key=Value
+
+	Type=Ethernet
+	Interface=eth0
+	bootproto=dhcp
+	...
+	-------------------// 1Key=1Value
+
+	Vs
+	YAML
+	|->Key: Value
+		|->Collection - array/object
+
+	Interface: [eth0,eth1,eth2]
+
+|->2. ansible - playbook - yaml format
+=====================================================================
+Key:<space>Value
+    -------
+-<space>Item1
+-<space>Item2
+=====================================================================
+
+playbook
+----------
+1. target section - remote node => hosts:<space><remoteNode/group>
+						------------------
+							|->from inventory file
+
+2. variable section - vars:
+			<userdefinedKey>:<space>Value
+				|
+			like a variable/placeholder
+
+
+3. task section - module execution
+		  |->ansible will push the module (pythonCode) ->to remote system
+		  # adhoc commandline 
+
+ansible remotenode -m yum -a "name=httpd state=present"
+
+	tasks:
+	- name: task1
+	  yum: name=httpd state=present
+	- name: task2
+          yum:
+            name: ksh
+            state: present
+	------------------------------
+
+register - capture module execution result - use register variable 
+
+debug module - display result to monitor
+   - msg
+   - var: <variableName>
+             
+debug - state ->always false 
+command,shell -> state ->always true
+---------------------------------------------
+host_vars/
+group_vars/
+ansible <remotenode> -m setup # to get list of ansible variables - gather_facts
+
+ansible-playbook p1.yml -e "variable=value"
+=========================================================================================================
+
+handler section
+==================
+  1. handler section - secondary task 
+               
+  2. we can use ansible module inside the handler section
+
+  3. Its based on primary tasks execution - handler section will execute
+	 --------------------------------
+		|->tasks:
+		   - module: <params> ---> m/c --> state: false - there is no changes in the m/c.
+				 |_______  m/c --> state: true  - there is changes in the m/c -->(A)
+
+		(A) -->handler block will execute
+
+ 4.  notify: <handlerName>
+
+	tasks:
+        - module: params 
+	  notify: callme --->--
+        handlers:            |
+        - name: callme       |
+          module: params <--<-
+
+ 5. handler block will execute after complete all the primary task execution, finally the handler block
+    will execute 
+ 
+ 6. handler block execute only one time.
+
+ 
+  tasks:
+  - module1: param1
+    notify: callme
+  - module2: param2
+  - module3: param3
+    notify: callme
+  - module4: param4
+  handlers:
+  - name: callme
+    module: params
+
+
+  tasks:
+  - module1: param1
+    notify: callme
+  - module2: param2
+  - module3: param3
+    notify: restart
+  - module4: param4
+  handlers:
+  - name: callme
+    module: params
+  - name: restart
+    module: ....
+
+
+===================================================================================================
+
+ansible node4 -m dnf -a "name=httpd state=present"    <---   task block
+ansible node4 -m service -a "name=httpd state=restarted" <-- handler block 
+
+---
+- hosts: node4
+  vars:
+    pkg: httpd
+  tasks:
+  - name: "install {{pkg}} " 
+    dnf:
+      name: "{{pkg}}"
+      state: present
+    notify: callme
+  handlers:
+  - name: callme
+    service:
+       name: "{{pkg}}"
+       state: restarted 
+
+
+
+
+|
+ansible node4 -m copy -a "src=httpd.conf dest=/etc/httpd.conf" <-- task 
+ansible node4 -m service -a "name=httpd state=restarted" <-- handler block
+
+
+---
+- hosts: node4
+  vars:
+    pkg: httpd
+  tasks:
+  - name: "install {{pkg}} " 
+    dnf:
+      name: "{{pkg}}"
+      state: present
+    notify: callme
+  - name: "copy the httpd.conf file to remote system /etc"
+    copy:
+      src: httpd.conf
+      dest: /etc/httpd.conf
+    notify: callme
+  handlers:
+  - name: callme
+    service:
+       name: "{{pkg}}"
+       state: restarted 
+
+================================================================
+Multiple handlers
+-----------------
+tasks:
+- name: task1
+  module: 
+  notify: one
+- name: task2
+  module:
+  notify: two
+handlers:
+- name: one
+  ...
+- name: two
+  ...
+
+#### Vs
+
+tasks:
+- name: task1
+  module: ...
+  notify: 
+  - one
+  - two
+  - three
+handlers:
+- name: one
+  ....
+- name: two
+  ...
+- name: three
+  ...
+-----------------------------------
+
+meta: 
+ flush_handlers  -- forces handlers to run immediately 
+
+
+==========================================================================
+listen: 
+ Group multiple handlers under one logical name.
+-----------------------------------------------------------------------------
+
+Conditional based execution
+---------------------------
+
+Recap
+-----
+ansible --->push the module --->remote system ->....
+	Vs
+ansible  - test the condition ->OK -->push the module 
+
+relational operators
+== != < <= > >= 
+Logical operators
+and or not
+
+In ansible - we won't use if..else style code block.
+==========
+|-> when: expression
+
+when <== ansible keyword - not a module
+
+ansible control system 
+- 1st test the condition ->OK - pushed to remote system
+	--------------
+		|->Not-OK --> won't pushed to remote system
+
+			
+
+"45"|int   # convert to int <or> typecast to int
+
+"45"|bool  # convert to bool
+
+45|float  # convert to float
+
+=======================================================================================================
+#ansible node4 -m setup -a "filter=ansible_dist*"
+node4 | SUCCESS => {
+    "ansible_facts": {
+        "ansible_distribution": "OracleLinux",
+        "ansible_distribution_file_parsed": true,
+        "ansible_distribution_file_path": "/etc/oracle-release",
+        "ansible_distribution_file_search_string": "Oracle Linux",
+        "ansible_distribution_file_variety": "OracleLinux",
+        "ansible_distribution_major_version": "8",
+        "ansible_distribution_release": "NA",
+        "ansible_distribution_version": "8.10"
+    },
+    "changed": false
+}
+#
+when: (ansible_distribution_major_version|int) >= 8   --- condition-1
+
+when: ansible_os_family == "Debian"    --- condition-2
+
+Logical operators
+ - test - more than one condition in singleline 
+
+when: ansible_os_family == "RedHat" and (ansible_distribution_major_version|int) >= 8     ->bool
+      -----------------------------      -----------------------------------------------
+
+apt: name="zsh" state="present"			------------------<--------then will push the module  --<--
+when: ansible_pkg_mgr == "apt" and ansible_os_family == "Debian" <---1st Test the condition---->----------|
+
+############################################################################################################
+
+module: key=value 
+when: <condition> <---
+
+
+loop:
+- <collection>
+
+item <-- pre-defined placeholder - loop iteration
+loop:
+- sh
+- ksh
+- bash
+
+
+debug: msg="{{item}}"
+loop:
+- sh
+- bash
+- ksh
+
+debug: var=item
+loop:
+- sh
+- bash
+- ksh
+
+group: name="{{item}}" state=present
+loop:
+- sales
+- prod
+- QA
+- test
+
+
+
+tasks:
+- name: task-1
+  user: name="demo1" state=present
+- name: task-2
+  user: name="demo2" state=present
+- name: task-3
+  user: name="demo3" state=present
+- name: task-4
+  user: name="demo4" state=present
+- name: task-5
+  user: name="demo5" state=present
+
+Vs
+tasks:
+- name: task-1
+  user: name="{{item}}" state=present
+  loop:
+  - demo1
+  - demo2
+  - demo3
+  - demo4
+  - demo5
+
+
+[root@node2 ansible_training]# ansible node4 -m group -a "name=QA state=present"
+node4 | CHANGED => {
+    "changed": true,
+    "gid": 1003,
+    "name": "QA",
+    "state": "present",
+    "system": false
+}
+[root@node2 ansible_training]# ansible node4 -m user -a "name=u1 group=QA uid=345 state=present"
+node4 | CHANGED => {
+    "changed": true,
+    "comment": "",
+    "create_home": true,
+    "group": 1003,
+    "home": "/home/u1",
+    "name": "u1",
+    "shell": "/bin/bash",
+    "state": "present",
+    "system": false,
+    "uid": 345
+}
+[root@node2 ansible_training]#
+
+
+
+vars:
+- array - list of group names
+- object/hash - 
+		{'K1':'userName','K2':'GroupName,'K3':UID} <-- initialization
+
+tasks:
+- task1 - create group - fetch data from array
+- task2 - create user - based on the given object/hash 
+
+
+vars:
+  group_members: ['sales','prod','HR','QA','Devops']
+  user_details: [{K1: 'uA',K2: 'sales',K3: 1234},
+		 {K1: 'uB',K2: 'prod',K3: 2345},
+		 {K1: 'uC',K2: 'HR',K3: 4567} ]
+
+tasks:
+- task1 - create a group
+- task2 - create a user - based on user_details 
+	  
+
+---------------------------------------------------------------------------------------------
+with_items:
+- collection
+
+with_....
+---------------//iterable 
+
+with_dict: 
+
+vars:
+  mydict:
+    'user1': 2001
+    'user2': 2002
+
+tasks:
+- name: create user
+  user: 
+    name: "{{ item.key }}"  #<-- pre-defined placeholder
+    uid: "{{ item.value }}" #<-- pre-defiend placeholder
+    state: present
+  with_dict: "{{ mydict }}"  
+-------------------------------------------------------------------------
+
+with_fileglob
+---------------
+Get list of files using * chars 
+ex: ls /etc/*.conf
+    ls /home/user1/app/*.log
+
+Task:
+Copy all .log files from current directory into remote system  /tmp
+     =================================================================
+
+
+with_nested
+-------------
+- ["OracleLinux","RedHat","Debian"]  
+- ["8","7","14"]
+  Vs
+{"Key": Value} ==>{{item.key}} {{item.value}} 
+============================================
+
+
+[ ["OracleLinux","RedHat","Debian" ], ["8","7","14" ] ]
+ ----------------0------------------  -------1------  
+ "{{item.0}}" "{{item.1}}" 
+
+
+with_sequence: start=<Count> end=<Count>
+
+
+ex: with_sequence: start=1 end=5
+
+
+tasks:
+- user:
+    name: "userA{{item}}" 
+    state: present
+  with_sequence: start=1 end=5
+
+==============================================================================================================
