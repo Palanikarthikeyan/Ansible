@@ -1,0 +1,4 @@
+
+{% for var in ansible_facts['default_ipv4'] %}
+  {{var}} - {{ansible_facts['default_ipv4'][var]}}
+{% endfor %}
