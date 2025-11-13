@@ -1,0 +1,12 @@
+---
+- hosts: localhost
+  tasks:
+  - name: task1
+    set_fact: myvar="Hello world example"
+  - name: task2
+    debug: var=myvar
+  - name: task3
+    debug: msg="myvar value is:{{myvar}}"
+  - name: simple math operation
+    set_fact: total="{{10+20.45}}"
+  - debug: var=total
