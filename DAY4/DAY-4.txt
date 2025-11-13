@@ -1,0 +1,268 @@
+Recap
+------
+handler section
+listen
+|
+when: <condition>
+      |->relational |->logical |->membership
+      |bool 
+      |int ..
+      ---------------//bool
+
+{{item}} 
+loop:				item.key item.value
+- <collection> - list/array ; dict/object
+
+with_...
+----------------------------------------------------------------
+
+delegate_to: <nodeName>
+
+[web]
+node1
+node2
+..
+node10
+
+ansible web -m <module> -a "...."
+	===	
+	|->node1...node10
+
+run this module - node3 only 
+		  ....
+run_once: true
+
+===================================================================================================
+vars:
+  myvar: <value>
+
+tasks:
+- module: 
+    k1: .... <== 
+
+
+set_fact
+---------
+ |->used to create variable dynamically during playbook execution.
+ |->facts - variables
+ |->initialize it - we can use later
+
+analogy
+=======
+in shell script
+
+   myport=5000  --->equivalent to variable section in ansible (vars: )
+	  ----//know the value
+
+   process_count=`ps -e|wc -l` 
+		 -------------//command will execute ->result initialize to process_count variable
+   ...
+   if [ $process_count -gt 100 ];then
+		..
+   fi		|__we can use command execution result to variable 
+	...		
+
+
+tasks:
+- name: task
+ <module>: myvar="Hello world"
+   |         |->this is userdefined key/placeholder/variable
+   |
+   set_fact <== using set_fact module we can initialize it.
+
+
+yum:
+  name: ...
+  state: ...
+copy:
+  src:
+  dest:
+ ....//predefined keys
+
+==============================================================================================
+- name: task1
+  set_fact: myvar="Hello world example"
+- name: task2
+  debug: var=myvar
+- name: task3
+  debug: msg="myvar value is:{{myvar}}"
+
+==============================================================================================
+
+lookup('Key','V1')
+         
+set_fact: 
+   start_time: "{{lookup('pipe','date +%s')}}"
+
+wait_for:
+    port: ..
+  
+register: result
+
+set_fact:
+   end_time: "{{lookup('','date +%s')}}"
+   elapsed_time: "{{end_time - start_time}}"
+
+ ...
+ ==========================================================================
+
+lookup('env','')
+lookup('file','')
+lookup('password','/tmp/f1 length=12 chars=ascii_letters')
+lookup('ini',...)
+lookup('template','')
+lookup('pipe',command)
+
+============================================
+
+ansible filters
+-----------------
+filters - like pre-defined function/plugin
+
+{{ inputvariable | filter_name(arguments) }}
+	|____________|           
+
+			(1)           (2)
+set_fact: variable={{inputvariable|filter_name(args)}}
+		|	|_____________|  |
+		|	   --->---       | ||
+		|________________________| \/
+			---<---
+			  (3)
+
+debug: 
+  msg: 
+    - "{{inputvariable|filter_name(args)}}"
+
+
+---
+- hosts: localhost
+  tasks:
+  - name: task-1
+    set_fact:
+      msg: "Hello Team,How are you doing"
+  - name: taks-2
+    debug:
+      msg:
+       - "Uppercase: {{msg|upper}}"
+       - "Lowercase: {{msg|lower}}"
+
+
+####################################################################################
+
+https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_filters.html
+
+####################################################################################
+
+template section
+|
+jinja2 template 
+
+1. web programming 
+   |
+  <html>..</html> //client page 
+
+  IND:130/4
+   |				=========
+ <h1><b><font color="green">IND:{{score}}</font></b></h1>	
+ ---------------------------------------------------------//filename.html
+
+2. ansible - playbook 
+   |
+   jinja2 template code  - module 
+		|
+		text file ->filename.j2
+				|
+				placehoders and controlstructures(condition,loop,filter)
+
+ To generate dynamic configuration file/scripts any text file - formatted style.
+
+ file.j2
+ -------
+   |->static text + dynamic variable + code logic(condition/loop) 
+
+
+[reportID]
+repo_name="OL9"
+base_url=https://yum.oracle.com
+ ..
+----------------------------------//  -> /etc/yum.repo.d/mypkg.repo
+
+
+- copy:
+    src: file1 
+    dest: /tmp/r1.log
+
+- template:
+    src: file1
+    dest: /tmp/r1.conf
+    
+
+=======================================================================
+jija2 template
+================
+variable =>  {{variable}} 	->ex: {{ansible_hostname}}
+
+Expression ==> {{expression}}   ->ex: {{10+20}}
+
+if condition ==> {% if condition %}
+		   ....
+		 {% endif %}
+
+for loop ==>   {% for variable in <collection> %}
+			....
+		{% endfor %}
+
+filter => {{filter}}
+
+comment ==> {# comment #} ==> {# this line will not appear in output #} 
+===========================================================================
+
+
+---------------------
+APP_ENV = {{app_var}}
+DEBUG= {{ 'true' if app_var == 'dev' else 'false' }} <-- singleline/comprehesion line/expression line
+----------------------
+ |
+ |
+APP_ENV=dev
+DEBUG=true
+----------------//result file
+
+file: p1.j2
+------------
+{% if app_var == 'dev' %}
+   DEBUG='true'
+{% else %}
+   DEBUG='false'
+{% endif %}
+------------------------------------------------------
+
+file:p2.j2
+-------------
+we can apply filter 
+user: {{username|lower}} 
+port: {{myport|default(8000)}}
+
+file:p3.j2
+------------
+Hostname: {{ansible_hostname}}
+OS:{{ansible_facts['distribution']}} {{ansible_facts['distribution_version']}}
+
+
+file: p4.j2
+-------------
+{% if ssl_enabled %}
+ssl_certificate {{ ssl_cert }};
+ssl_certificate_key {{ ssl_key }};
+{% else %} 
+# ssl not enabled
+{% endif %}
+
+file: p5.j2
+------------
+{% for var in collection %}
+   - {{...}}
+{% endfor %}
+
+=============================================================================================
