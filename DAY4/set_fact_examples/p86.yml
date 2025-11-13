@@ -1,0 +1,11 @@
+---
+- hosts: localhost
+  tasks:
+  - set_fact:
+      partition_size: [120,320,450,800,310]
+  - debug:
+      msg:
+      - "Partition1: {{partition_size|first}}"
+      - "LastPartition: {{partition_size|last }}"
+      - "Sum: {{partition_size|sum}}"
+      - "Reversed: {{partition_size|reverse}}"
