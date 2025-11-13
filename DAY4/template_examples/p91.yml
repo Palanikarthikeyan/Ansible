@@ -1,0 +1,13 @@
+---
+- hosts: node4
+  vars:
+    mysysinfo: ["Linux","/bin/bash"]
+  tasks:
+  - name: task-1
+    copy:
+      src: file1.j2
+      dest: /tmp/r1.conf
+  - name: task-2
+    template:
+      src: file1.j2
+      dest: /tmp/r2.conf
