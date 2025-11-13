@@ -1,0 +1,9 @@
+---
+- hosts: web
+  tasks:
+  - name: task1
+    command: /bin/true
+    delegate_to: krosumlabs
+    run_once: true
+  - name: task2
+    debug: msg="OK"
