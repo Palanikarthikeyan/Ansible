@@ -1,0 +1,22 @@
+---
+- hosts: web
+  tasks:
+  - name: task1
+    command: /bin/true
+    delegate_to: krosumlabs
+    run_once: true
+  - name: task2
+    debug: msg="OK"
+  - name: task3
+    copy: content="<h1>Hello</h1>" dest="/tmp/test.html"
+    delegate_to: node4
+    run_once: true
+    register: result
+    notify: call
+  handlers:
+  - name: call
+    debug: var=result
+  - name: display html_Content
+    shell: cat /tmp/test.html
+    register: output
+  - debug: var=output.stdout
