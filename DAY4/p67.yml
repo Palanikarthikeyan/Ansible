@@ -1,0 +1,14 @@
+---
+- hosts: node4
+  tasks:
+  - name: task-1
+    command: /bin/true
+  - name: task-2
+    wait_for:
+      port: 80
+      state: started
+      timeout: 15
+  - name: task-3
+    debug: msg="OK-3"
+  - name: task-4
+    debug: msg="OK-4"
