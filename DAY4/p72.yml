@@ -1,0 +1,12 @@
+---
+- hosts: node4
+  tasks:
+  - name: task1
+    wait_for:
+      path: /tmp/test.log
+      timeout: 10
+    ignore_errors: true
+  - name: task2
+    command: /bin/true
+  - name: task3
+    command: /bin/true
