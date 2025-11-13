@@ -1,0 +1,18 @@
+---
+- name: lookup plugin examples
+  hosts: localhost
+  tasks:
+  - name: Get the HOME directory from env variable
+    debug:
+      msg: "Home directory is:{{lookup('env','HOME')}}"
+  - debug:
+      msg: "Java Home directory path:{{lookup('env','JAVA_HOME')}}"
+  - debug:
+      msg: "File Content: {{lookup('file','/root/emp.csv')}}"
+  - debug:
+      msg: "{{lookup('password','/tmp/mykey length=8 chars=ascii_letters')}}"
+  - debug:
+      msg: "{{lookup('file',lookup('env','CONFIG_PATH'))}}"
+    ignore_errors: true
+  - debug:
+      msg: "Today is:{{lookup('pipe','date')}}"
