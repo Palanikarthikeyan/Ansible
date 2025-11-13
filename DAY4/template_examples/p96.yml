@@ -1,0 +1,11 @@
+---
+- hosts: all
+  tasks:
+  - name: task-1- create sysinfo.log file
+    template:
+      src: file5.j2
+      dest: /tmp/sysinfo.ini
+      owner: root
+      mode: 644
+  - name: task-2
+    fetch: src=/tmp/sysinfo.ini dest=/tmp
