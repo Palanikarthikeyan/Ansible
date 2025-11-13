@@ -1,0 +1,14 @@
+
+---
+- hosts: localhost
+  tasks:
+  - name: task-1
+    set_fact:
+      msg: "Hello Team,How are you doing"
+  - name: taks-2
+    debug:
+      msg:
+       - "Uppercase: {{msg|upper}}"
+       - "Lowercase: {{msg|lower}}"
+       - "Replace: {{msg|replace('Team','Members')}}"
+       - "Split: {{msg|split(' ')}}"
