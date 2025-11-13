@@ -1,0 +1,14 @@
+
+# {{app_name}} configuration
+
+app_name = {{ app_name }}
+app_env = {{ app_env | default('production') }}
+version = {{ version }}
+debug = {{debug|lower}}
+
+# Database Configuration
+
+db_host = {{db_host}}
+db_port = {{db_port}}
+db_user = {{db_user|lower}}
+db_password = {{db_password}}
