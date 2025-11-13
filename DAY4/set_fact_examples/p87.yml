@@ -1,0 +1,17 @@
+
+---
+- hosts: localhost
+  gather_facts: no
+  vars:
+    myvar: "Data-1"
+    port: 4040
+    files: []
+    property: {}
+  tasks:
+  - debug: msg="{{myvar|default(120)}}"
+  - debug: msg="{{mycode|default(220)}}"
+  - debug: msg="{{myvar|type_debug}}"
+  - debug: msg="{{port|type_debug}}"
+  - debug: msg="{{files|type_debug}}"
+  - debug: msg="{{property|type_debug}}"
+  - debug: msg="{{ {'K1':[]}|type_debug}}"
