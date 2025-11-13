@@ -1,0 +1,12 @@
+---
+- hosts: localhost
+  tasks:
+  - name: task1
+    command: /bin/true
+  - name: task2
+    command: /bin/false
+    ignore_errors: true
+  - name: task3
+    command: /bin/true
+  - name: task4
+    command: /bin/true
