@@ -1,0 +1,11 @@
+---
+- hosts: localhost
+  tasks:
+  - name: simple mathematical
+    set_fact:
+       total: "{{10+20.34}}"
+       r1: "{{145/2}}"
+       r2: "{{349.32*0.32}}"
+  - name: display results to monitor
+    debug:
+      msg: "Total={{total}} r1={{r1}} r2={{r2}}"
