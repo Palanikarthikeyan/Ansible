@@ -1,0 +1,8 @@
+---
+- hosts: localhost
+  tasks:
+  - name: set status if service is running
+    set_fact:
+      service_status: "running"
+    when: ansible_facts.services['sshd'].state == 'running'
+  - debug: var=service_status
