@@ -1,0 +1,18 @@
+
+---
+- hosts: localhost
+  gather_facts: no
+  vars:
+    data: {name: "app",version: "2.3.5"}
+  tasks:
+  - debug:
+      msg:
+      - "JSON: {{data|to_json}}"
+      - "YAML: {{data|to_nice_yaml}}"
+  - set_fact:
+      ip: "192.168.1.49/24"
+  - debug:
+      msg:
+      - "Network: {{ip| ipaddr('network') }}"
+      - "Broadcast: {{ip| ipaddr('broadcast') }}"
+      - "Netmask: {{ip| ipaddr('netmask') }}"
