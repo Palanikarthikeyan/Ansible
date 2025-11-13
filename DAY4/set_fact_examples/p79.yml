@@ -1,0 +1,21 @@
+
+---
+- name: Calculate elapsed time
+  hosts: node4
+  gather_facts: no
+  tasks:
+  - name: Get start time
+    set_fact:
+      start_time: "{{ lookup('pipe','date +%s') | int }}"
+  - name: wait for port 80
+    wait_for:
+      port: 80
+      timeout: 20
+    register: result
+  - name: Get end time and elapsed
+    set_fact:
+      end_time: "{{ lookup('pipe','date +%s')| int }}"
+  - set_fact: elapsed_time="{{end_time|int - start_time|int}}"
+    ignore_errors: true
+  - debug:
+      msg: "Elapsed time is:{{elapsed_time}}"
