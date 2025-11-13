@@ -1,0 +1,9 @@
+---
+- hosts: all
+  vars:
+    pkgs: ["gcc","g++","ksh","irb","git","ansible"]
+  tasks:
+  - name: task-1
+    template:
+      src: file3.j2
+      dest: /tmp/packages.log
