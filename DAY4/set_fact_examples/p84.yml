@@ -1,0 +1,11 @@
+
+---
+- hosts: localhost
+  vars:
+    msg: "Hello Team,How are you doing"
+  tasks:
+  - name: task-1
+    set_fact:
+      output: "{{msg|upper}}"
+  - name: taks-2
+    debug: var=output
