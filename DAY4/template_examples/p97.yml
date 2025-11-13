@@ -1,0 +1,5 @@
+
+---
+- hosts: localhost
+  tasks:
+  - template: src=file6.j2 dest=mysys.log
