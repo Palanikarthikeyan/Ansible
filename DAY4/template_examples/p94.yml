@@ -1,0 +1,18 @@
+---
+- hosts: all
+  vars:
+   app_name: 'demoApp'
+   app_env: 'dev'
+   version: "1.0.4"
+   debug: True
+   db_host: "localhost"
+   db_port: 4352
+   db_user: "admin"
+   db_password: "test@123"
+  tasks:
+  - name: task-1- create app config file
+    template:
+      src: file4_appconfig.j2
+      dest: /tmp/myapp_config.ini
+      owner: root
+      mode: 644
