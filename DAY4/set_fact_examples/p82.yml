@@ -1,0 +1,10 @@
+---
+- hosts: localhost
+  tasks:
+  - set_fact:
+      users: []
+  - set_fact:
+      users: "{{users + ['karthik']}}"
+  - set_fact:
+      users: "{{users + ['tom']}}"
+  - debug: var=users
