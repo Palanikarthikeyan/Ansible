@@ -1,0 +1,15 @@
+---
+- hosts: localhost
+  tasks:
+  - name: initialize list
+    set_fact:
+      service_ports: []
+  - name: set dynamic values inside a loop
+    set_fact:
+      service_ports: "{{service_ports + [item]}}"
+    with_items:
+    - 80
+    - 22
+    - 8080
+    - 9090
+  - debug: var=service_ports
