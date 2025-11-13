@@ -1,0 +1,12 @@
+---
+- hosts: node4
+  vars:
+    repo_name: OL9
+    repo_id: myOL9
+    base_url: "https://yum.oracle.com"
+    enabled: 1
+  tasks:
+  - name: create private repository file
+    template:
+      src: file2.j2
+      dest: /tmp/myiso.repo
