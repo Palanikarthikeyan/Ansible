@@ -1,0 +1,10 @@
+
+---
+- hosts: localhost
+  gather_facts: no
+  vars:
+    dict1: {a: 10,b: 20}
+    dict2: {b: 30,c: 40}
+  tasks:
+  - debug:
+      msg: "{{dict1|combine(dict2)}}"
