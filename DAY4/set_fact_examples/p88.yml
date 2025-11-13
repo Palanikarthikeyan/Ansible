@@ -1,0 +1,12 @@
+
+---
+- hosts: localhost
+  gather_facts: no
+  vars:
+    ports: [80,443,8080,80]
+  tasks:
+  - debug:
+      msg:
+        - "unique ports:{{ports|unique}}"
+        - "first port: {{ports|first}}"
+        - "sorted ports:{{ports|sort}}"
