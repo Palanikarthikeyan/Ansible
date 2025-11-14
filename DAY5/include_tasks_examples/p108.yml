@@ -1,0 +1,13 @@
+---
+- name: include_task_demo
+  hosts: [node4,localhost]
+  tasks:
+  - name: 1st Task from p108.yml file
+    debug: msg="Task-A"
+  - include_tasks: p107.yml
+    when: ansible_os_family == "RedHat"
+  - name: Next Task
+    debug: msg="Task-B"
+  - include_tasks: p107.yml
+    when: ansible_os_family == "Debian"
+  - debug: msg="End of the task"
