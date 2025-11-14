@@ -1,0 +1,556 @@
+target section - remotenode+permission+gather_facts
+|
+variable section
+|
+tasks section
+|
+handler section
+|
+template section 
+ 
+----------------------------------------------------
+block - group of task
+
+- name: task1
+  dnf: name=httpd state=present
+  when: ansible_facts['os_family'] == "RedHat"
+  ignore_erros: true
+
+- name: task2
+  copy: src=/etc/httpd.conf dest=/etc
+  when: ansible_facts['os_family'] == "RedHat"
+  ignore_erros: true
+
+- name: task3
+  service: name= http state=started
+  when: ansible_facts['os_family'] == "RedHat"
+  ignore_erros: true
+
+- name: task4
+  command: date
+  register: result
+  notify: callme
+  when: ansible_facts['os_family'] == "RedHat"
+  ignore_erros: true
+-------------------------------------------------------------
+
+block:
+   <group of tasks> # task gets failed ----->---
+					       |
+					       |
+rescue:					       |
+	------<---------------------------------
+
+always:
+	always running block 
+
+
+tasks: 
+  block:
+    - name: task1
+      dnf: name=httpd state=present
+
+    - name: task2
+      copy: src=/etc/httpd.conf dest=/etc
+  
+    - name: task3
+      service: name= http state=started
+   when: ansible_facts['os_family'] == "RedHat"
+   ignore_errors: true
+  rescue:
+  - name: task-4
+    debug: msg="Tasks failed"
+  always:
+  - name: task-5
+    debug: msg="OK"
+ 
+- name: task4
+  command: date
+  register: result
+  notify: callme
+  when: ansible_facts['os_family'] == "RedHat"
+  ignore_erros: true
+
+############################################################################################
+- name: block-demo1
+  hosts: localhost
+  tasks:
+  - name: main block
+    block:
+      - name: task-1
+        command: /bin/true
+      - name: task-2
+        command: /bin/true
+      - name: task-3
+        command: /bin/true
+    rescue:
+      - name: task-4
+        debug: msg="This is rescue block"
+    always:
+      - name: task-5
+        debug: msg="Always running block"
+#############################################################################################
+file: p1.yml
+---
+- name: demo1-Play1  <------------------(a)
+  hosts: all
+  tasks:  - name: task1
+    command: /bin/true
+  - name: task2
+    command: /bin/true
+  - name: task3
+    command: /bin/true
+  - name: task4
+    command: /bin/true
+    notify:
+       - callone
+       - calltwo
+  - name: task5
+    command: /bin/true
+  handlers:
+  - name: callone
+    command: /bin/true
+  - name: calltwo
+    command: /bin/true <---------------(a)
+- name: demo2-Play2
+  hosts: [node1,node2]
+  tasks:
+  - name: taskA
+    ...
+  - name: taskB
+    ...
+  handlers:
+  - ..
+  ....
+
+
+ ------------------
+ tasks:
+ - name: block-1
+   block:
+     - name: task1
+     - name: task2
+     - name: task3
+   rescue:
+     - name: ...
+   always:
+     - name: ..
+ - name: block-2
+   block:
+     - name: taskA
+     - name: taskB
+   rescue:
+     - name: ..
+   always:
+     - name: ..
+
+-------------------------------------------------------------------
+
+ansible all -m file -a "path=/tmp/f1.log state=touch" 
+ansible all -m copy -a "content='Hello test file from copy module' dest=/tmp/f1.log
+ansible all -m command -a "cat /tmp/f1.log"
+	       |
+	     notify - callhandler -> read the /tmp/f1.log
+-------------------------------------------------------------//block
+Ansible tags
+--------------
+tags ->label
+|
+selectively run only specific parts of your playbook
+
+-> Run only certain tasks 
+-> skip time-cosuming task 
+
+tasks:
+- name: task1
+  command: /bin/true
+- name: task2
+  command: /bin/true
+  tags: demo1
+- name: task3
+  command: /bin/true
+- name: task3
+  command: /bin/true
+  tags:
+    - demo2
+    - demo3
+- name: task4
+  command: /bin/true
+-------------------------------
+ansible-playbook p1.yml --tags demo1
+ansible-playbook p1.yml --skip-tags demo1
+
+Run only task with a tag
+ansible-playbook p103.yml --tags install
+
+Run multiple tags
+ansible-playbook p1.yml --tags "install,web,prod"
+
+Skip tasks using a tag
+ansible-playbook p1.ym --skip-tags install
+
+special tag
+-------------
+never  - task never runs unless the tag is explicitly called using --tags never 
+
+
+To list out - list of tags in playbook
+==========================================
+[root@node2 ansible_training]# ansible-playbook p104.yml --list-tags
+
+playbook: p104.yml
+
+  play #1 (localhost): localhost        TAGS: [setup]
+      TASK TAGS: [setup]
+[root@node2 ansible_training]# ansible-playbook p103.yml --list-tags
+
+playbook: p103.yml
+
+  play #1 (localhost): localhost        TAGS: []
+      TASK TAGS: [db, install, prod, web]
+[root@node2 ansible_training]# ansible-playbook p102.yml --list-tags
+
+playbook: p102.yml
+
+  play #1 (localhost): block-demo2      TAGS: []
+
+##############################################################################################################
+
+ansible vault 
+---------------
+ |->encrypt sensitive data
+
+Commandline
+--------------
+ ansible-vault create demo1.yml <== create a new encrypted file
+ |
+ 
+
+# encrypt an existing file
+ ansible-vault encrypt p1.yml
+ 
+# Decrypt file
+ansible-vault decrypt p1.yml 
+
+# editing an encrypted file 
+ansible-vault edit demo1.yml
+
+Run with a vault password prompt
+#ansible-playbook p106.yml --ask-vault-pass
+Vault password:
+
+#ansible-vault decrypt p106.yml
+Vault password:
+Decryption successful
+
+---
+- hosts: all
+  vars_files:
+    - secrets.yml
+  tasks:
+  - debug: msg="{{ db_password }}"
+
+-------------------------------------
+ansible-playbook p1.yml --vault-password-file .vault_pass 
+
+echo "MyupdatedPassword" >.valut_pass
+chmod 600 .vault_pass
+
+
+##################################################################################################
+
+
+
+We can reuse an existing task file in ansible 
+
+include_tasks 
+
+lower version code -> include 
+
+include_tasks - dynamically include external task into playbook 
+		-----------------------------------------------
+			|->evaluate at runtime 
+
+file: demo1.yml
+-----------------
+
+---
+- name: playbook-1
+  hosts: all
+  tasks:
+  - name: task-1 install nginx
+    apt:
+     name: nginx
+     state: present
+ ----------------------------------
+
+file: install_nginx.yml 
+-------------------------
+- name: task-1 install nginx
+  apt:
+   name: nginx
+   state: present
+-------------------------------
+
+file: demo2.yml
+=================
+---
+- name: playbook-1
+  hosts: all
+  tasks:
+    - name: include task file dynamically
+      include_task: install_nginx.yml <===
+------------------------------------------
+
+
+file: demo3.yml
+=================
+---
+- name: playbook-1
+  hosts: all
+  tasks:
+    - name: include task file dynamically
+      include_task: install_nginx.yml
+      when: ansible_os_family == "Debian"
+------------------------------------------
+
+ import_tasks - Parse time
+  |->won't supports conditional statement (when,loop,...)
+ ----------------------------------------------------------------- 
+
+include_vars
+------------
+ |->ansible module  - load variable from file (or) entire directory into the current play
+ 
+
+ - name: load variable from file
+   include_vars:
+      file: <filename.yml>
+	    =============== 
+
+
+ mydir/
+      pkg.yml
+	   |-> pkg1: httpd
+	   |-> pkg2: gcc
+      app.yml
+	   |-> app_name: flask
+	   |-> app_port: 5000
+      db.yml
+	   |-> db_name: oracle
+	   |-> db_port: 1234
+ --------------------------------
+
+
+ - name: load all variable files in directory
+   include_vars:
+      dir: directoryName
+	   =============== 
+
+####################################################################################################
+
+import_playbook
+----------------
+-> used in ansible-playbook(not inside the tasks) to include another playbook - statically at parse time
+										========================
+ 
+file: p1.yml
+file: p2.yml
+file: p3.yml
+===============
+|
+---------------------------------
+file: ab.yml
+
+- import_playbook: p1.yml
+- import_playbook: p2.yml
+- import_playbook: p3.yml
+--------------------------------
+|->ansible-playbook ab.yml
+
+############################################################################################
+
+[ actor ]
+    |---------->role1: police
+    |---------->role2: teacher 
+    |---------->role3: agri
+
+||||
+roles
+------
+	[node]
+	  |--------->DB   <==
+	  |--------->Web  <==
+	  |--------->Test <== 
+
+
+roles - structured directory
+
+1. create a directory called roles => mkdir roles   <== pre-defined
+2. create a project/roledirectory  -> mkdir -p roles/DB  <== userdefined
+
+3. recap playbook sections
+   -----------------------
+   vars:		=> mkdir vars/
+	...			   |----->main.yml # initialize variable 
+   tasks:		=> mkdir tasks/
+	...			   |------>main.yml # add more task
+				   |------>p1.yml p2.yml 
+   handlers:            => mkdir handlers
+	...			   |--------->main.yml ..
+   template:            => mkdir templates/
+	...			   |------>file1.j2
+	 
+ roles/
+      |__DB <== user-defined project directory
+	  |
+	  |-->vars/
+	  |-->tasks/
+	  |-->handlers/
+	  |-->templates/ 
+
+      |__QA/
+	  |___vars/  
+          |____________tasks/
+ 
+---
+roles:
+- DB <=== 
+- QA <===
+----------------//p1.yml 
+
+[root@node2 ansible_training]# cat -n p117.yml
+     1  ---
+     2  - name: role demo1
+     3    hosts: all
+     4    gather_facts: no
+     5    roles:
+     6    - DB
+[root@node2 ansible_training]# ls roles/DB/
+tasks  vars
+[root@node2 ansible_training]# cat -n roles/DB/vars/main.yml
+     1  mydb_name: influxdb
+     2  mydb_port: 8086
+[root@node2 ansible_training]# cat -n roles/DB/tasks/main.yml
+     1  - name: task1
+     2    debug: msg="DB name is:{{mydb_name}} running port:{{mydb_port}}"
+     3  - name: task2
+     4    command: curl http://localhost:8086 >/dev/null 2>&1
+     5    register: result
+[root@node2 ansible_training]#
+
+######################################################################
+
+tasks/ -  yaml module - task
+
+handlers/ - notified by task 
+
+templates/ - jija2 template
+
+vars/   - variable - higher priority 
+
+
+files/ - static files - copied to host
+meta/  - dependencies,author,documents
+
+defaults/ - default variable - lowest priority
+
+######################################################################
+
+Creating roles automatically
+|
+ansible-galaxy
+
+
+
+ansible-galaxy role init <roleName> 
+ansible-galaxy role install <roleName>
+ansible-galaxy role list
+ansible-galaxy role info <roleName>
+
+
+
+ansible-playbook -i <inventoryFile-Path> p1.yml
+
+[root@node2 ansible_training]# ansible-galaxy role install geerlingguy.docker
+
+[root@node2 ansible_training]# ls ~/.ansible/roles/geerlingguy.docker/
+
+##########################################################################################################
+
+ansible awx
+-------------
+Core Components
+================
+1. Projects - GitHub - where our playbooks live
+
+2. Inventories 
+
+3. Credentials - SSH keys
+
+4. Job Templates - blueprint for running a playbook
+   =============
+     |->project+inventory+credentials+playbook
+
+5. schedules - automate jobs at specific times - like cron
+6. execution env / nodes 
+     - containerized ansible runtime images
+ ===========================================================
+
+Work flow
+-----------
+
+[1]->Admin uploads playbook to GitHub 
+                                  -->[2]-->AWX syncs project from GitHub
+					
+[3] ->User select a job template
+[4] ->AWX connects to target hosts using credentials
+[5] ->AWX executes playbook inside an execution environment
+[6] ->AWX shows results,logs ...
+===============================================================================
+AWX Operator 
+- install k8s,openshift,minikube
+
+===============================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
