@@ -1,0 +1,14 @@
+---
+- hosts: node4
+  tasks:
+  - name: Include variables from file
+    include_vars:
+      file: pkags.yml # files/myvars.yml <-- in role
+  - name: Install a package and start a service
+    dnf:
+      name: "{{package_name}}"
+      state: present
+  - name: start the service
+    service:
+      name: "{{package_name}}"
+      state: "{{service_state}}"
