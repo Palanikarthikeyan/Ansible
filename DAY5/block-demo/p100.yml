@@ -1,0 +1,19 @@
+---
+- name: block-demo1
+  hosts: localhost
+  tasks:
+  - name: main block
+    block:
+      - name: task-1
+        command: /bin/true
+      - name: task-2
+        command: /bin/false
+      - name: task-3
+        command: /bin/true
+    ignore_errors: true
+    rescue:
+      - name: task-4
+        debug: msg="This is rescue block"
+    always:
+      - name: task-5
+        debug: msg="Always running block"
