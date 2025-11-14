@@ -1,0 +1,8 @@
+- import_playbook: p112.yml
+  tags: sales
+
+- import_playbook: p113.yml
+  tags: prod
+
+- import_playbook: p1.yml
+  tags: app
