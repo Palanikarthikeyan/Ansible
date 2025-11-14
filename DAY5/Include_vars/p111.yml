@@ -1,0 +1,12 @@
+---
+- name: directory_load
+  hosts: localhost
+  tasks:
+  - name: task-1
+    debug: msg="Task1-Execution"
+  - name: task-2
+    include_vars:
+       dir: mydir
+  - name: task-3
+    debug: msg="{{pkg1}} {{pkg2}} {{app_name}}"
+  - debug: msg="{{app_port}} {{db_name}} {{db_port}}"
