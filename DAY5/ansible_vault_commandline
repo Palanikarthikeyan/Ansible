@@ -1,0 +1,27 @@
+ansible vault 
+---------------
+ |->encrypt sensitive data
+
+Commandline
+--------------
+ ansible-vault create demo1.yml <== create a new encrypted file
+ |
+ 
+
+# encrypt an existing file
+ ansible-vault encrypt p1.yml
+ 
+# Decrypt file
+ansible-vault decrypt p1.yml 
+
+# editing an encrypted file 
+ansible-vault edit demo1.yml
+
+Run with a vault password prompt
+#ansible-playbook p106.yml --ask-vault-pass
+Vault password:
+
+#ansible-vault decrypt p106.yml
+Vault password:
+Decryption successful
+
