@@ -1,0 +1,114 @@
+# Server for Oracle Database installation (19c / 21c compatible).
+#
+---
+- name: Configure Oracle Database prerequisites on Oracle Linux
+  hosts: dbservers
+  become: yes
+  vars:
+    oracle_user: oracle
+    oracle_groups:
+      - oinstall
+      - dba
+    oracle_base: /u01/app/oracle
+    oracle_home: /u01/app/oracle/product/19.0.0/dbhome_1
+    oracle_inventory: /u01/app/oraInventory
+    oracle_soft_limit_nofile: 1024
+    oracle_hard_limit_nofile: 65536
+    oracle_soft_limit_nproc: 2047
+    oracle_hard_limit_nproc: 16384
+    oracle_soft_limit_stack: 10240
+    oracle_hard_limit_stack: 32768
+
+  tasks:
+    - name: Install required OS packages
+      yum:
+        name:
+          - binutils
+          - gcc
+          - glibc
+          - glibc-devel
+          - libaio
+          - libaio-devel
+          - ksh
+          - make
+          - sysstat
+          - smartmontools
+          - net-tools
+          - unzip
+          - xorg-x11-utils
+          - xorg-x11-xauth
+          - compat-libcap1
+          - compat-libstdc++-33
+        state: present
+
+    - name: Create Oracle groups
+      group:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ oracle_groups }}"
+
+    - name: Create Oracle user
+      user:
+        name: "{{ oracle_user }}"
+        group: oinstall
+        groups: dba
+        append: yes
+        shell: /bin/bash
+        create_home: yes
+
+    - name: Create Oracle base and inventory directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ oracle_user }}"
+        group: oinstall
+        mode: '0775'
+      loop:
+        - "{{ oracle_base }}"
+        - "{{ oracle_inventory }}"
+        - "{{ oracle_home | dirname }}"
+
+    - name: Set kernel parameters for Oracle
+      copy:
+        dest: /etc/sysctl.d/99-oracle-database.conf
+        content: |
+          fs.file-max = 6815744
+          kernel.sem = 250 32000 100 128
+          kernel.shmmni = 4096
+          kernel.shmall = 1073741824
+          kernel.shmmax = 4398046511104
+          kernel.panic_on_oops = 1
+          net.core.rmem_default = 262144
+          net.core.rmem_max = 4194304
+          net.core.wmem_default = 262144
+          net.core.wmem_max = 1048576
+          fs.aio-max-nr = 1048576
+          net.ipv4.ip_local_port_range = 9000 65500
+      notify: reload sysctl
+
+    - name: Configure Oracle user limits
+      copy:
+        dest: /etc/security/limits.d/oracle-database-limits.conf
+        content: |
+          {{ oracle_user }}   soft   nofile    {{ oracle_soft_limit_nofile }}
+          {{ oracle_user }}   hard   nofile    {{ oracle_hard_limit_nofile }}
+          {{ oracle_user }}   soft   nproc     {{ oracle_soft_limit_nproc }}
+          {{ oracle_user }}   hard   nproc     {{ oracle_hard_limit_nproc }}
+          {{ oracle_user }}   soft   stack     {{ oracle_soft_limit_stack }}
+          {{ oracle_user }}   hard   stack     {{ oracle_hard_limit_stack }}
+
+    - name: Configure Oracle user environment
+      blockinfile:
+        path: "/home/{{ oracle_user }}/.bash_profile"
+        block: |
+          # Oracle Settings
+          export ORACLE_BASE={{ oracle_base }}
+          export ORACLE_HOME={{ oracle_home }}
+          export ORACLE_SID=ORCL
+          export ORACLE_TERM=xterm
+          export PATH=$PATH:$ORACLE_HOME/bin
+          export LD_LIBRARY_PATH=$ORACLE_HOME/lib:/lib:/usr/lib
+          export CLASSPATH=$ORACLE_HOME/jlib:$ORACLE_HOME/rdbms/jlib
+        owner: "{{ oracle_user }}"
+        group: oinstall
+        mode: '0644'

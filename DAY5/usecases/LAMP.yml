@@ -1,0 +1,81 @@
+# LAMP stack (Linux, Apache, MySQL/MariaDB, PHP) on Oracle Linux using Ansible
+---
+- name: Deploy LAMP stack on Oracle Linux
+  hosts: webservers
+  become: yes
+
+  vars:
+    php_packages:
+      - php
+      - php-mysqlnd
+      - php-cli
+      - php-common
+      - php-gd
+      - php-xml
+    mysql_root_password: StrongRootPassword123!
+    http_port: 80
+    index_page: /var/www/html/index.php
+
+  tasks:
+    - name: Ensure required repositories are available
+      yum:
+        name: oracle-epel-release-el{{ ansible_distribution_major_version }}
+        state: present
+      ignore_errors: yes
+
+    - name: Install Apache, MariaDB, and PHP
+      yum:
+        name:
+          - httpd
+          - mariadb-server
+          - "{{ php_packages }}"
+        state: present
+
+    - name: Start and enable Apache
+      service:
+        name: httpd
+        state: started
+        enabled: yes
+
+    - name: Start and enable MariaDB
+      service:
+        name: mariadb
+        state: started
+        enabled: yes
+
+    - name: Secure MariaDB root account
+      mysql_secure_installation:
+        login_password: ''
+        user: root
+        login_host: localhost
+        password: "{{ mysql_root_password }}"
+        config_file: /etc/my.cnf
+      ignore_errors: true
+
+    - name: Open HTTP service in firewall
+      firewalld:
+        service: http
+        permanent: yes
+        state: enabled
+        immediate: yes
+
+    - name: Restart firewalld
+      service:
+        name: firewalld
+        state: restarted
+
+    - name: Create a PHP info page
+      copy:
+        dest: "{{ index_page }}"
+        content: |
+          <?php
+          phpinfo();
+          ?>
+        owner: apache
+        group: apache
+        mode: '0644'
+
+    - name: Restart Apache after PHP installation
+      service:
+        name: httpd
+        state: restarted

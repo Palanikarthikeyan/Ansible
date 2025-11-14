@@ -1,0 +1,49 @@
+---
+- name: Oracle Linux Patching Playbook
+  hosts: all
+  become: yes
+  vars:
+    reboot_after_patch: true
+    patch_log_dir: /var/log/ansible_patching
+  tasks:
+
+    - name: Ensure patch log directory exists
+      file:
+        path: "{{ patch_log_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Run OS package updates
+      yum:
+        name: '*'
+        state: latest
+      register: patch_result
+
+    - name: Save patch result log
+      copy:
+        content: "{{ patch_result | to_nice_json }}"
+        dest: "{{ patch_log_dir }}/patch_result_{{ inventory_hostname }}_{{ ansible_date_time.date }}.json"
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Check if kernel was updated
+      set_fact:
+        kernel_updated: "{{ 'kernel' in (patch_result.changes | default({})) or 'kernel' in (patch_result.results | default([]) | join(' ')) }}"
+
+    - name: Reboot if needed
+      when: reboot_after_patch and kernel_updated
+      reboot:
+        msg: "Rebooting after kernel update via Ansible patching"
+        reboot_timeout: 600
+
+    - name: Report completion
+      debug:
+        msg: "Patching completed on {{ inventory_hostname }} (Rebooted: {{ kernel_updated }})"
+
+
+# run as: ansible-playbook -i inventory.ini patch_oracle_linux.yml
+
+

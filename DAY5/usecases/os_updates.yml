@@ -1,0 +1,21 @@
+---
+- name: Apply OS updates on Oracle Linux
+  hosts: all
+  become: yes
+  tasks:
+    - name: Ensure system is up to date
+      yum:
+        name: "*"
+        state: latest
+      register: yum_update
+
+    - name: Reboot if kernel updated
+      when: "'kernel' in yum_update.changes or 'kernel' in yum_update.results | join(' ')"
+      reboot:
+        msg: "Reboot initiated after kernel update"
+        reboot_timeout: 600
+
+    - name: Clean up yum cache
+      yum:
+        name: "*"
+        state: clean
