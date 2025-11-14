@@ -1,0 +1,30 @@
+---
+- name: block-demo2
+  hosts: localhost
+  tasks:
+  - block:
+    - name: Create a file
+      file:
+        path: /tmp/f1.log
+        state: touch
+    - name: write content
+      copy:
+        content: "Hello test file from copy module"
+        dest: /tmp/f1.log
+    - name: execute file content
+      command: cat /tmp/f1.log
+      register: result
+      notify: call
+    rescue:
+      - name: rescue block
+        debug: msg="This is Error handler block"
+    always:
+      - name: thank you
+        debug: msg="Thank you"
+  handlers:
+  - name: call
+    debug: var=result.stdout
+  - name: next_task1
+    debug: msg="Next task from outside block1"
+  - name: next_task2
+    debug: msg="Next task from outside block2"
