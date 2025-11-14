@@ -1,0 +1,20 @@
+---
+- hosts: localhost
+  tags: setup
+  tasks:
+  - name: task1
+    debug: msg="This is task1"
+  - name: task2
+    debug: msg="This is task2"
+  - name: task3
+    debug: msg="This is task3"
+  - name: task4
+    debug: msg="This is task4"
+  - name: task5
+    debug: msg="This is task5"
+  - name: task6
+    debug: msg="This is task6"
+  - name: task7
+    debug: msg="This is task7"
+  - name: task8
+    debug: msg="This is task8"
