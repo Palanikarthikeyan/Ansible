@@ -1,0 +1,7 @@
+---
+- hosts: localhost
+  tasks:
+  - name: Run only when explicity called
+    debug: msg="This tasks execute rarely"
+    tags: never
+  - debug: msg="This is end of the task"
